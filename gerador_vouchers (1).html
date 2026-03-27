@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi Mazepa — Vouchers</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --gold:#D4AC3A;--gold2:#F0D060;--gold3:#8B6F1E;
+  --bg:#07070D;--s1:#0F0F1C;--s2:#14142A;--s3:#1A1A35;
+  --border:#252545;--border2:#3A3A60;
+  --text:#EEEEFF;--muted:#7070A0;--dim:#4A4A70;
+  --ok:#3EFFA0;--err:#FF4466;--r:12px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;padding-bottom:100px;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 10% 0%,rgba(212,172,58,.06) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 40% at 90% 100%,rgba(80,60,200,.04) 0%,transparent 60%);}
+
+/* ── NAVBAR ── */
+.navbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,7,13,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.navbar-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;align-items:center;gap:0;padding:0 20px;
+}
+.nav-brand{
+  font-family:'Playfair Display',serif;font-size:18px;font-weight:900;
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  padding:14px 20px 14px 0;border-right:1px solid var(--border);margin-right:8px;
+  white-space:nowrap;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:12px 16px;background:none;border:none;
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;
+  color:var(--muted);cursor:pointer;transition:all .2s;border-radius:8px;
+  white-space:nowrap;
+}
+.nav-btn:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.nav-btn.active{color:var(--gold);}
+.nav-btn .nb{
+  font-family:'DM Mono',monospace;font-size:10px;
+  background:rgba(212,172,58,.15);color:var(--gold);
+  border:1px solid rgba(212,172,58,.25);padding:1px 7px;border-radius:3px;
+}
+.nav-counter{
+  margin-left:auto;display:flex;align-items:center;gap:10px;
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);
+}
+.nav-counter-num{
+  font-size:16px;color:var(--gold);
+  background:rgba(212,172,58,.1);border:1px solid rgba(212,172,58,.2);
+  padding:3px 12px;border-radius:5px;letter-spacing:2px;
+}
+
+/* ── WRAP ── */
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px 0;}
+
+/* ── PAGE SECTIONS ── */
+.page{display:none;}
+.page.active{display:block;animation:up .4s ease;}
+
+/* ── CARD ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:28px;margin-bottom:20px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.card-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold);margin-bottom:4px;}
+.card-sub{font-size:13px;color:var(--muted);margin-bottom:22px;}
+
+/* ── SEC LABEL ── */
+.sec-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.badge{font-family:'DM Mono',monospace;font-size:11px;background:rgba(212,172,58,.12);color:var(--gold);border:1px solid rgba(212,172,58,.22);padding:2px 8px;border-radius:4px;margin-left:6px;}
+
+/* ── TABS ── */
+.tabs{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;}
+.tab{flex:1;padding:12px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;background:var(--s1);color:var(--muted);border:none;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Nunito',sans-serif;}
+.tab:not(:last-child){border-right:1px solid var(--border);}
+.tab.active{background:var(--s2);color:var(--gold);}
+.tab:hover:not(.active){background:var(--s2);color:var(--text);}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:var(--s2);color:var(--gold);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;padding:10px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border);font-weight:500;}
+th.tc,td.tc{text-align:center;width:52px;}
+th.tw,td.tw{width:44px;text-align:center;}
+tbody tr{transition:background .15s;}
+tbody tr:hover{background:rgba(212,172,58,.03);}
+tbody tr:not(:last-child) td{border-bottom:1px solid var(--border);}
+tbody td{padding:3px 6px;vertical-align:middle;}
+.row-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);background:rgba(212,172,58,.1);border-radius:4px;padding:3px 7px;display:inline-block;}
+.cell-input{width:100%;background:transparent;border:none;color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;padding:8px 8px;border-radius:6px;outline:none;transition:background .2s;}
+.cell-input:focus{background:var(--s3);}
+.cell-input::placeholder{color:var(--dim);}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--dim);font-size:14px;padding:4px 8px;border-radius:6px;transition:all .2s;line-height:1;}
+.del-btn:hover{color:var(--err);background:rgba(255,68,102,.1);}
+.add-row{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;margin-top:8px;background:transparent;border:1.5px dashed var(--border2);border-radius:8px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif;}
+.add-row:hover{border-color:var(--gold);color:var(--gold);background:rgba(212,172,58,.04);}
+
+/* ── CSV ── */
+.csv-panel{display:none;}
+.csv-panel.visible{display:block;}
+.dropzone{border:1.5px dashed var(--border2);border-radius:10px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--s2);}
+.dropzone:hover,.dropzone.over{border-color:var(--gold);background:rgba(212,172,58,.04);}
+.dropzone.has-file{border-color:var(--ok);border-style:solid;}
+.drop-icon{font-size:28px;margin-bottom:8px;display:block;}
+.drop-main{font-size:14px;font-weight:600;margin-bottom:4px;}
+.drop-sub{font-size:12px;color:var(--muted);}
+.drop-sub span{color:var(--gold);text-decoration:underline;cursor:pointer;}
+#fileInput{display:none;}
+.file-pill{display:none;align-items:center;gap:10px;justify-content:center;margin-top:12px;}
+.file-pill.v{display:flex;}
+.pill-name{font-family:'DM Mono',monospace;font-size:12px;background:rgba(62,255,160,.1);color:var(--ok);border:1px solid rgba(62,255,160,.2);padding:4px 12px;border-radius:4px;}
+.pill-rm{background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;transition:color .2s;}
+.pill-rm:hover{color:var(--err);}
+.col-tag{font-family:'DM Mono',monospace;font-size:11px;background:rgba(212,172,58,.08);color:var(--gold);border:1px solid rgba(212,172,58,.2);padding:3px 10px;border-radius:4px;}
+
+/* ── BUTTONS ── */
+.btn-gold{padding:14px 24px;background:linear-gradient(135deg,var(--gold),var(--gold3));color:#07070D;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;transition:all .3s;display:inline-flex;align-items:center;gap:8px;position:relative;overflow:hidden;}
+.btn-gold::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold2),var(--gold));opacity:0;transition:opacity .3s;}
+.btn-gold:hover::before{opacity:1;}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,172,58,.28);}
+.btn-gold span{position:relative;z-index:1;}
+.btn-outline{padding:14px 20px;background:var(--s2);border:1px solid var(--border2);color:var(--muted);font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;border-radius:10px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;}
+.btn-outline:hover{color:var(--text);border-color:var(--muted);}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:7px;}
+.btn-danger{background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.25);color:var(--err);font-family:'Nunito',sans-serif;font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer;transition:all .2s;}
+.btn-danger:hover{background:rgba(255,68,102,.2);}
+.actions-bar{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;}
+
+/* ── PROGRESS ── */
+.prog-card{display:none;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:32px;margin-bottom:20px;}
+.prog-card.v{display:block;}
+.prog-top{display:flex;justify-content:space-between;margin-bottom:10px;}
+.prog-txt{font-size:14px;font-weight:600;}
+.prog-pct{font-family:'DM Mono',monospace;font-size:14px;color:var(--gold);}
+.prog-bar{height:4px;background:var(--s3);border-radius:99px;overflow:hidden;margin-bottom:20px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold3),var(--gold));border-radius:99px;width:0%;transition:width .4s ease;}
+.steps{display:flex;flex-direction:column;gap:10px;}
+.step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim);transition:color .3s;}
+.step.active{color:var(--text);}
+.step.done{color:var(--ok);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .3s;}
+.step.active .dot{background:var(--gold);animation:pulse 1.2s infinite;}
+.step.done .dot{background:var(--ok);}
+
+/* ── RESULT ── */
+.res-card{display:none;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:36px;text-align:center;margin-bottom:20px;}
+.res-card.v{display:block;}
+.res-icon{font-size:44px;margin-bottom:12px;}
+.res-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--gold);margin-bottom:6px;}
+.res-sub{font-size:13px;color:var(--muted);margin-bottom:22px;}
+.res-stats{display:flex;justify-content:center;gap:32px;margin-bottom:24px;}
+.stat-n{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--gold);line-height:1;}
+.stat-l{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+#dlArea{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;max-height:320px;overflow-y:auto;}
+.dl-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--s2);border:1px solid var(--border2);border-radius:8px;cursor:pointer;transition:all .2s;font-size:13px;text-align:left;}
+.dl-row:hover{border-color:var(--gold);background:var(--s3);}
+.dl-row-num{font-family:'DM Mono',monospace;color:var(--gold);font-size:12px;min-width:36px;}
+.dl-row-info{flex:1;overflow:hidden;}
+.dl-row-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dl-row-meta{font-size:11px;color:var(--muted);}
+.dl-row-ico{color:var(--gold);font-size:16px;}
+.dl-all{width:100%;justify-content:center;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold3));color:#07070D;font-weight:700;font-size:14px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;font-family:'Nunito',sans-serif;}
+.dl-all:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,172,58,.3);}
+.dl-all:disabled{opacity:.5;cursor:wait;}
+
+/* ── HISTÓRICO ── */
+.search-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:180px;background:var(--s2);border:1px solid var(--border2);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;padding:10px 14px;border-radius:8px;outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--gold);}
+.search-input::placeholder{color:var(--dim);}
+.hist-empty{text-align:center;padding:48px 24px;color:var(--muted);font-size:14px;}
+.hist-empty span{display:block;font-size:36px;margin-bottom:12px;}
+
+.hist-table thead th{cursor:default;}
+.hist-table .ht-actions{width:120px;text-align:center;}
+.hist-tag{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;background:rgba(62,255,160,.08);color:var(--ok);border:1px solid rgba(62,255,160,.15);padding:2px 7px;border-radius:3px;}
+.hist-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.action-btns{display:flex;gap:6px;justify-content:center;}
+.btn-via{padding:5px 11px;font-size:11px;font-weight:700;border-radius:5px;cursor:pointer;border:none;transition:all .2s;font-family:'Nunito',sans-serif;}
+.btn-via-dl{background:rgba(212,172,58,.15);color:var(--gold);border:1px solid rgba(212,172,58,.25);}
+.btn-via-dl:hover{background:rgba(212,172,58,.3);}
+.btn-via-del{background:rgba(255,68,102,.08);color:var(--err);border:1px solid rgba(255,68,102,.2);}
+.btn-via-del:hover{background:rgba(255,68,102,.2);}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;}
+.stat-box{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;}
+.stat-box-n{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--gold);line-height:1;}
+.stat-box-l{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:4px;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.v{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:16px;padding:32px;max-width:500px;width:100%;position:relative;animation:up .3s ease;}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:16px 16px 0 0;}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gold);margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.modal-fields{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+.modal-field label{display:block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+.modal-field input{width:100%;background:var(--s2);border:1px solid var(--border2);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;padding:9px 12px;border-radius:7px;outline:none;transition:border-color .2s;}
+.modal-field input:focus{border-color:var(--gold);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;transition:color .2s;line-height:1;}
+.modal-close:hover{color:var(--text);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--s1);border:1px solid var(--border2);padding:10px 20px;border-radius:8px;font-size:13px;transition:transform .4s cubic-bezier(.34,1.56,.64,1);z-index:400;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+@media(max-width:640px){
+  .nav-brand{font-size:15px;padding:12px 12px 12px 0;}
+  .nav-btn .nb{display:none;}
+  .wrap{padding:20px 12px 0;}
+  .card{padding:18px 14px;}
+  .actions-bar{flex-direction:column;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <span class="nav-brand">🚖 Taxi Mazepa</span>
+    <button class="nav-btn active" id="nav-emitir" onclick="goPage('emitir')">🎟️ Emitir <span class="nb" id="nb-prox">001</span></button>
+    <button class="nav-btn" id="nav-historico" onclick="goPage('historico')">📋 Histórico <span class="nb" id="nb-total">0</span></button>
+    <button class="nav-btn" id="nav-stats"    onclick="goPage('stats')">📊 Resumo</button>
+    <div class="nav-counter">
+      <span>Próximo:</span>
+      <span class="nav-counter-num" id="navNum">001</span>
+      <button class="btn-outline btn-sm" onclick="resetarContador()" style="padding:5px 10px;font-size:11px;">↺</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ══════════════════ PÁGINA: EMITIR ══════════════════ -->
+<div class="page active" id="page-emitir">
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-title">Emitir Vouchers</div>
+    <div class="card-sub">Preencha os dados abaixo ou importe um CSV</div>
+
+    <div class="tabs">
+      <button class="tab active" id="tabManual" onclick="switchTab('manual')">✏️ Preencher manualmente</button>
+      <button class="tab" id="tabCSV"   onclick="switchTab('csv')">📂 Importar CSV</button>
+    </div>
+
+    <!-- MANUAL -->
+    <div id="manualPanel">
+      <div class="sec-label">Vouchers <span class="badge" id="countBadge">0 itens</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="tc">Nº</th>
+              <th>Nome Funcionário</th>
+              <th>Nome Motorista</th>
+              <th>Empresa</th>
+              <th style="width:120px;">Valor</th>
+              <th class="tw"></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <button class="add-row" onclick="addRow()">＋ Adicionar linha</button>
+    </div>
+
+    <!-- CSV -->
+    <div class="csv-panel" id="csvPanel">
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <span class="drop-icon">📂</span>
+        <div class="drop-main">Arraste o arquivo CSV aqui</div>
+        <div class="drop-sub">ou <span>clique para selecionar</span></div>
+        <input type="file" id="fileInput" accept=".csv">
+      </div>
+      <div class="file-pill" id="filePill">
+        <span class="pill-name" id="fileName"></span>
+        <button class="pill-rm" onclick="removeCSV()">✕</button>
+      </div>
+      <div id="csvPreviewArea" style="margin-top:16px;"></div>
+      <div style="margin-top:12px;padding:13px 16px;background:var(--s2);border-radius:8px;border:1px solid var(--border);">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Colunas esperadas</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="col-tag">nome_funcionario</span><span class="col-tag">nome_motorista</span>
+          <span class="col-tag">empresa</span><span class="col-tag">valor</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;text-align:right;">
+        <button class="btn-outline btn-sm" onclick="downloadSample()">⬇ Baixar CSV de exemplo</button>
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <button class="btn-gold" onclick="gerar()"><span>🎟️ Gerar Vouchers em PDF</span></button>
+      <button class="btn-outline" onclick="limparTudo()">🗑 Limpar</button>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog-card" id="progCard">
+    <div class="prog-top"><span class="prog-txt" id="progTxt">Processando...</span><span class="prog-pct" id="progPct">0%</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    <div class="steps">
+      <div class="step" id="s1"><div class="dot"></div>Coletando dados</div>
+      <div class="step" id="s2"><div class="dot"></div>Numeração sequencial</div>
+      <div class="step" id="s3"><div class="dot"></div>Criando PDFs</div>
+      <div class="step" id="s4"><div class="dot"></div>Salvando no banco de dados</div>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="res-card" id="resCard">
+    <div class="res-icon">🎉</div>
+    <div class="res-title">Vouchers emitidos!</div>
+    <div class="res-sub" id="resSub"></div>
+    <div class="res-stats">
+      <div><div class="stat-n" id="stN">0</div><div class="stat-l">Gerados</div></div>
+      <div><div class="stat-n" id="stTotal">0</div><div class="stat-l">No banco</div></div>
+    </div>
+    <div id="dlArea"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn-outline" onclick="resetar()">↺ Emitir novos</button>
+      <button class="btn-outline" onclick="goPage('historico')">📋 Ver histórico</button>
+    </div>
+  </div>
+
+</div><!-- /page-emitir -->
+
+
+<!-- ══════════════════ PÁGINA: HISTÓRICO ══════════════════ -->
+<div class="page" id="page-historico">
+
+  <div class="card">
+    <div class="card-title">Histórico de Vouchers</div>
+    <div class="card-sub">Todos os vouchers emitidos — clique em ⬇ para gerar a 2ª via em PDF</div>
+
+    <div class="search-bar">
+      <input class="search-input" id="searchInput" placeholder="🔍  Buscar por nº, funcionário, motorista ou empresa..." oninput="renderHistorico()">
+      <button class="btn-outline btn-sm" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <button class="btn-danger btn-sm" onclick="limparBanco()">🗑 Limpar banco</button>
+    </div>
+
+    <div id="histArea"></div>
+  </div>
+
+</div><!-- /page-historico -->
+
+
+<!-- ══════════════════ PÁGINA: RESUMO ══════════════════ -->
+<div class="page" id="page-stats">
+
+  <div class="card">
+    <div class="card-title">Resumo Geral</div>
+    <div class="card-sub">Estatísticas dos vouchers emitidos</div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="sec-label" style="margin-top:8px;">Últimos emitidos</div>
+    <div id="statsRecent"></div>
+  </div>
+
+</div><!-- /page-stats -->
+
+</div><!-- /wrap -->
+
+<!-- ── MODAL EDITAR ── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Editar Voucher</div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-fields">
+      <div class="modal-field"><label>Nome Funcionário</label><input id="mFunc" placeholder="Nome do funcionário"></div>
+      <div class="modal-field"><label>Nome Motorista</label><input id="mMotor" placeholder="Nome do motorista"></div>
+      <div class="modal-field"><label>Empresa</label><input id="mEmp" placeholder="Empresa"></div>
+      <div class="modal-field"><label>Valor</label><input id="mVal" placeholder="Ex: R$ 50,00"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn-gold btn-sm" onclick="salvarEdicao()"><span>💾 Salvar e baixar 2ª via</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════
+function wait(ms){ return new Promise(r => setTimeout(r,ms)); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function showToast(msg, duration=2800){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), duration);
+}
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ════════════════════════════════════════════════
+//  BANCO DE DADOS (localStorage)
+// ════════════════════════════════════════════════
+const DB_KEY      = 'taximazepa_db';
+const COUNTER_KEY = 'taximazepa_next';
+
+function dbLoad(){ try{ return JSON.parse(localStorage.getItem(DB_KEY)||'[]'); }catch{ return []; } }
+function dbSave(arr){ localStorage.setItem(DB_KEY, JSON.stringify(arr)); }
+function dbAdd(vouchers){ const db=dbLoad(); db.push(...vouchers); dbSave(db); }
+function dbDelete(num){ const db=dbLoad().filter(v=>v.num!==num); dbSave(db); }
+function dbUpdate(num, fields){
+  const db=dbLoad();
+  const i=db.findIndex(v=>v.num===num);
+  if(i>=0){ db[i]={...db[i],...fields}; dbSave(db); return db[i]; }
+  return null;
+}
+function dbCount(){ return dbLoad().length; }
+
+function getNext(){ return parseInt(localStorage.getItem(COUNTER_KEY)||'1'); }
+function setNext(n){
+  localStorage.setItem(COUNTER_KEY,n);
+  const s = String(n).padStart(3,'0');
+  document.getElementById('navNum').textContent = s;
+  document.getElementById('nb-prox').textContent = s;
+}
+
+function resetarContador(){
+  if(!confirm('Reiniciar contador para 001?\n\nIsso não altera os vouchers já emitidos.')) return;
+  setNext(1); refreshNums(); showToast('Contador reiniciado para 001');
+}
+
+function refreshNums(){
+  let n = getNext();
+  document.querySelectorAll('#tableBody .row-num').forEach(sp => {
+    sp.textContent = String(n++).padStart(3,'0');
+  });
+}
+
+// ════════════════════════════════════════════════
+//  NAVEGAÇÃO
+// ════════════════════════════════════════════════
+function goPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='historico') renderHistorico();
+  if(name==='stats') renderStats();
+  updateNavBadges();
+}
+
+function updateNavBadges(){
+  const total = dbCount();
+  document.getElementById('nb-total').textContent = total;
+}
+
+// ════════════════════════════════════════════════
+//  TABS (emitir)
+// ════════════════════════════════════════════════
+let mode='manual', csvRows=[];
+
+function switchTab(m){
+  mode=m;
+  document.getElementById('tabManual').classList.toggle('active', m==='manual');
+  document.getElementById('tabCSV').classList.toggle('active', m==='csv');
+  document.getElementById('manualPanel').style.display = m==='manual' ? '' : 'none';
+  document.getElementById('csvPanel').classList.toggle('visible', m==='csv');
+}
+
+// ════════════════════════════════════════════════
+//  TABELA MANUAL
+// ════════════════════════════════════════════════
+function addRow(func,motor,emp,val){
+  func=func||''; motor=motor||''; emp=emp||''; val=val||'';
+  const tbody = document.getElementById('tableBody');
+  const num   = getNext() + tbody.rows.length;
+  const tr    = document.createElement('tr');
+  tr.innerHTML=`
+    <td class="tc"><span class="row-num">${String(num).padStart(3,'0')}</span></td>
+    <td><input class="cell-input" placeholder="Nome do funcionário" value="${esc(func)}" data-col="func"></td>
+    <td><input class="cell-input" placeholder="Nome do motorista"   value="${esc(motor)}" data-col="motor"></td>
+    <td><input class="cell-input" placeholder="Empresa"             value="${esc(emp)}"   data-col="emp"></td>
+    <td><input class="cell-input" placeholder="R$ 0,00"             value="${esc(val)}"   data-col="val" style="font-family:'DM Mono',monospace;font-size:12px;"></td>
+    <td class="tw"><button class="del-btn" onclick="delRow(this)">✕</button></td>`;
+  tbody.appendChild(tr);
+  updateCount();
+  if(!func) tr.querySelector('[data-col="func"]').focus();
+}
+
+function delRow(btn){
+  const tbody=document.getElementById('tableBody');
+  if(tbody.rows.length<=1){ showToast('Mínimo de um voucher'); return; }
+  const tr=btn.closest('tr');
+  tr.style.cssText='opacity:0;transform:translateX(10px);transition:all .18s;';
+  setTimeout(()=>{ tr.remove(); updateCount(); refreshNums(); },180);
+}
+
+function updateCount(){
+  const n=document.getElementById('tableBody').rows.length;
+  document.getElementById('countBadge').textContent=n+' item'+(n!==1?'s':'');
+}
+
+function getManualRows(){
+  const base=getNext();
+  return [...document.getElementById('tableBody').rows].map((r,i)=>{
+    const inp=r.querySelectorAll('.cell-input');
+    return{ num:base+i, func:inp[0]?.value.trim()||'—', motor:inp[1]?.value.trim()||'—', emp:inp[2]?.value.trim()||'—', val:inp[3]?.value.trim()||'—' };
+  });
+}
+
+function limparTudo(){
+  if(mode==='manual'){ document.getElementById('tableBody').innerHTML=''; addRow(); addRow(); addRow(); }
+  else removeCSV();
+}
+
+// ════════════════════════════════════════════════
+//  CSV
+// ════════════════════════════════════════════════
+const dz=document.getElementById('dropzone');
+dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', ()=>dz.classList.remove('over'));
+dz.addEventListener('drop', e=>{ e.preventDefault(); dz.classList.remove('over');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.name.endsWith('.csv')) handleCSV(f); else showToast('Use um arquivo .csv'); });
+document.getElementById('fileInput').addEventListener('change', e=>{ if(e.target.files[0]) handleCSV(e.target.files[0]); });
+
+function handleCSV(file){
+  document.getElementById('fileName').textContent=file.name;
+  document.getElementById('filePill').classList.add('v');
+  dz.classList.add('has-file');
+  const reader=new FileReader();
+  reader.onload=e=>{ csvRows=parseCSV(e.target.result); renderCSVPreview(); };
+  reader.readAsText(file,'UTF-8');
+}
+function removeCSV(){
+  csvRows=[];
+  document.getElementById('fileInput').value='';
+  document.getElementById('filePill').classList.remove('v');
+  dz.classList.remove('has-file');
+  document.getElementById('csvPreviewArea').innerHTML='';
+}
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/); if(lines.length<2) return [];
+  const h=lines[0].split(',').map(x=>x.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map((l,i)=>{ const v=l.split(',').map(x=>x.trim().replace(/^"|"$/g,'')); const o={_i:i}; h.forEach((k,j)=>o[k]=v[j]||''); return o; });
+}
+function renderCSVPreview(){
+  const area=document.getElementById('csvPreviewArea'); if(!csvRows.length){ area.innerHTML=''; return; }
+  const base=getNext(); const cols=Object.keys(csvRows[0]).filter(k=>k!=='_i'); const show=csvRows.slice(0,5);
+  let h=`<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">${csvRows.length} registros — a partir do nº ${String(base).padStart(3,'0')}</div>`;
+  h+=`<div class="table-wrap"><table><thead><tr><th>Nº</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  show.forEach((r,i)=>{ h+=`<tr><td><span class="row-num">${String(base+i).padStart(3,'0')}</span></td>${cols.map(c=>`<td>${r[c]||'—'}</td>`).join('')}</tr>`; });
+  h+=`</tbody></table></div>`;
+  if(csvRows.length>5) h+=`<div style="text-align:center;font-size:12px;color:var(--muted);padding:8px;border-top:1px solid var(--border);background:var(--s2);border-radius:0 0 8px 8px;">+ ${csvRows.length-5} registros adicionais</div>`;
+  area.innerHTML=h;
+}
+function getCSVRows(){
+  const base=getNext();
+  return csvRows.map((r,i)=>({ num:base+i, func:r['nome_funcionario']||r['funcionario']||'—', motor:r['nome_motorista']||r['motorista']||'—', emp:r['empresa']||'—', val:r['valor']||'—' }));
+}
+
+// ════════════════════════════════════════════════
+//  GERAR
+// ════════════════════════════════════════════════
+async function gerar(){
+  const rows = mode==='manual' ? getManualRows() : getCSVRows();
+  if(!rows.length){ showToast('Adicione pelo menos um voucher'); return; }
+  if(mode==='csv'&&!csvRows.length){ showToast('Importe um CSV primeiro'); return; }
+
+  document.getElementById('mainCard').style.display='none';
+  document.querySelector('.actions-bar').style.display='none';
+  const prog=document.getElementById('progCard'); prog.classList.add('v');
+
+  const setP=(p,t)=>{ document.getElementById('progFill').style.width=p+'%'; document.getElementById('progPct').textContent=p+'%'; document.getElementById('progTxt').textContent=t; };
+  const step=(n,st)=>document.getElementById('s'+n).className='step '+st;
+
+  step(1,'active'); setP(10,'Coletando dados...'); await wait(300); step(1,'done');
+  step(2,'active'); setP(22,'Numeração sequencial...'); await wait(300); step(2,'done');
+  step(3,'active'); setP(38,'Criando PDFs...');
+
+  for(let i=0;i<rows.length;i++){
+    makePDF(rows[i].num,rows[i].func,rows[i].motor,rows[i].emp,rows[i].val);
+    setP(Math.round(38+(i+1)/rows.length*42), `Voucher ${i+1} de ${rows.length}...`);
+    if(i%4===0) await wait(12);
+  }
+  step(3,'done');
+
+  step(4,'active'); setP(85,'Salvando no banco...'); await wait(300);
+
+  // Salva no banco com timestamp
+  const now = Date.now();
+  const dbRows = rows.map(r=>({ ...r, createdAt: now }));
+  dbAdd(dbRows);
+
+  // Avança contador
+  const proxNum = rows[rows.length-1].num + 1;
+  setNext(proxNum);
+
+  step(4,'done'); setP(100,'Concluído!'); await wait(450);
+
+  prog.style.display='none';
+  const res=document.getElementById('resCard'); res.classList.add('v');
+  document.getElementById('stN').textContent=rows.length;
+  document.getElementById('stTotal').textContent=dbCount();
+  document.getElementById('resSub').textContent=
+    `Vouchers ${String(rows[0].num).padStart(3,'0')} a ${String(rows[rows.length-1].num).padStart(3,'0')} salvos. Próximo: ${String(proxNum).padStart(3,'0')}.`;
+
+  const dlArea=document.getElementById('dlArea'); dlArea.innerHTML='';
+
+  rows.forEach(r=>{
+    const d=document.createElement('div'); d.className='dl-row'; d.onclick=()=>downloadOne(r);
+    d.innerHTML=`<span class="dl-row-num">#${String(r.num).padStart(3,'0')}</span>
+      <div class="dl-row-info"><div class="dl-row-name">${r.func}</div><div class="dl-row-meta">${r.motor} · ${r.emp} · ${r.val}</div></div>
+      <span class="dl-row-ico">⬇</span>`;
+    dlArea.appendChild(d);
+  });
+
+  if(rows.length>1){
+    const sep=document.createElement('div'); sep.style.cssText='height:1px;background:var(--border);margin:6px 0;'; dlArea.appendChild(sep);
+    const allBtn=document.createElement('button'); allBtn.className='dl-all';
+    allBtn.innerHTML=`⬇ Baixar todos os ${rows.length} PDFs`;
+    allBtn.onclick=async()=>{ allBtn.disabled=true; allBtn.textContent='Baixando...';
+      for(const r of rows){ downloadOne(r); await wait(420); }
+      allBtn.disabled=false; allBtn.innerHTML=`⬇ Baixar todos os ${rows.length} PDFs`; };
+    dlArea.appendChild(allBtn);
+  }
+
+  updateNavBadges();
+}
+
+function downloadOne(r){
+  const bytes=makePDF(r.num,r.func,r.motor,r.emp,r.val);
+  const blob=new Blob([bytes],{type:'application/pdf'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`voucher_${String(r.num).padStart(3,'0')}.pdf`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetar(){
+  document.getElementById('resCard').classList.remove('v');
+  document.getElementById('progCard').classList.remove('v');
+  document.getElementById('progCard').style.display='';
+  document.getElementById('mainCard').style.display='';
+  document.querySelector('.actions-bar').style.display='';
+  document.getElementById('progFill').style.width='0%';
+  ['s1','s2','s3','s4'].forEach(id=>document.getElementById(id).className='step');
+  document.getElementById('tableBody').innerHTML='';
+  addRow(); addRow(); addRow();
+  setNext(getNext());
+}
+
+// ════════════════════════════════════════════════
+//  HISTÓRICO
+// ════════════════════════════════════════════════
+function renderHistorico(){
+  const q=(document.getElementById('searchInput')?.value||'').toLowerCase().trim();
+  let db=dbLoad();
+  if(q) db=db.filter(v=>[v.num,v.func,v.motor,v.emp,v.val].some(x=>String(x).toLowerCase().includes(q)));
+  db.sort((a,b)=>b.num-a.num);
+
+  const area=document.getElementById('histArea');
+  if(!db.length){
+    area.innerHTML=`<div class="hist-empty"><span>📭</span>${q?'Nenhum resultado para "'+q+'"':'Nenhum voucher emitido ainda.<br>Vá em <b>Emitir</b> para criar o primeiro!'}</div>`;
+    return;
+  }
+
+  let h=`<div class="table-wrap"><table class="hist-table">
+    <thead><tr>
+      <th class="tc">Nº</th>
+      <th>Funcionário</th>
+      <th>Motorista</th>
+      <th>Empresa</th>
+      <th>Valor</th>
+      <th>Data</th>
+      <th class="ht-actions">Ações</th>
+    </tr></thead><tbody>`;
+
+  db.forEach(v=>{
+    h+=`<tr>
+      <td class="tc"><span class="row-num">${String(v.num).padStart(3,'0')}</span></td>
+      <td>${v.func}</td>
+      <td>${v.motor}</td>
+      <td>${v.emp}</td>
+      <td><span class="hist-tag">${v.val}</span></td>
+      <td><span class="hist-date">${fmtDate(v.createdAt)}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-via btn-via-dl" onclick="download2via(${v.num})" title="Baixar 2ª via">⬇ 2ª via</button>
+          <button class="btn-via btn-via-dl" onclick="openModal(${v.num})" title="Editar e baixar">✏️</button>
+          <button class="btn-via btn-via-del" onclick="deletarVoucher(${v.num})" title="Excluir">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+  h+=`</tbody></table></div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:right;margin-top:8px;padding:4px;">
+      ${db.length} registro${db.length!==1?'s':''} encontrado${db.length!==1?'s':''}
+    </div>`;
+  area.innerHTML=h;
+}
+
+function download2via(num){
+  const db=dbLoad(); const v=db.find(x=>x.num===num);
+  if(!v){ showToast('Voucher não encontrado'); return; }
+  downloadOne(v);
+  showToast(`2ª via do voucher #${String(num).padStart(3,'0')} gerada!`);
+}
+
+function deletarVoucher(num){
+  if(!confirm(`Excluir voucher #${String(num).padStart(3,'0')} do banco?\n\nEsta ação não pode ser desfeita.`)) return;
+  dbDelete(num); renderHistorico(); updateNavBadges(); showToast('Voucher excluído');
+}
+
+function limparBanco(){
+  if(!confirm('Apagar TODOS os vouchers do banco de dados?\n\nEsta ação não pode ser desfeita.')) return;
+  localStorage.removeItem(DB_KEY); renderHistorico(); updateNavBadges(); showToast('Banco de dados limpo');
+}
+
+function exportarCSV(){
+  const db=dbLoad(); if(!db.length){ showToast('Banco vazio'); return; }
+  const h='numero,funcionario,motorista,empresa,valor,data_emissao';
+  const rows=db.map(v=>[v.num,v.func,v.motor,v.emp,v.val,fmtDate(v.createdAt)].map(x=>`"${x}"`).join(','));
+  const blob=new Blob([[h,...rows].join('\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`taximazepa_vouchers_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  URL.revokeObjectURL(url); showToast('CSV exportado!');
+}
+
+// ════════════════════════════════════════════════
+//  MODAL EDITAR
+// ════════════════════════════════════════════════
+let editingNum = null;
+
+function openModal(num){
+  const db=dbLoad(); const v=db.find(x=>x.num===num);
+  if(!v) return;
+  editingNum=num;
+  document.getElementById('modalSub').textContent=`Voucher #${String(num).padStart(3,'0')} — emitido em ${fmtDate(v.createdAt)}`;
+  document.getElementById('mFunc').value=v.func;
+  document.getElementById('mMotor').value=v.motor;
+  document.getElementById('mEmp').value=v.emp;
+  document.getElementById('mVal').value=v.val;
+  document.getElementById('modalOverlay').classList.add('v');
+}
+
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('v'); editingNum=null; }
+
+function salvarEdicao(){
+  if(!editingNum) return;
+  const fields={
+    func: document.getElementById('mFunc').value.trim()||'—',
+    motor: document.getElementById('mMotor').value.trim()||'—',
+    emp: document.getElementById('mEmp').value.trim()||'—',
+    val: document.getElementById('mVal').value.trim()||'—',
+  };
+  const updated=dbUpdate(editingNum, fields);
+  if(updated){ downloadOne(updated); showToast(`Voucher #${String(editingNum).padStart(3,'0')} atualizado e 2ª via gerada!`); }
+  closeModal(); renderHistorico();
+}
+
+document.getElementById('modalOverlay').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+// ════════════════════════════════════════════════
+//  RESUMO / STATS
+// ════════════════════════════════════════════════
+function renderStats(){
+  const db=dbLoad();
+  const total=db.length;
+  const hoje=db.filter(v=>{ const d=new Date(v.createdAt); const n=new Date(); return d.toDateString()===n.toDateString(); }).length;
+  const semana=db.filter(v=>Date.now()-v.createdAt < 7*86400000).length;
+
+  // Empresa mais frequente
+  const empCount={};
+  db.forEach(v=>{ empCount[v.emp]=(empCount[v.emp]||0)+1; });
+  const topEmp=Object.entries(empCount).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-box"><div class="stat-box-n">${total}</div><div class="stat-box-l">Total de vouchers</div></div>
+    <div class="stat-box"><div class="stat-box-n">${hoje}</div><div class="stat-box-l">Emitidos hoje</div></div>
+    <div class="stat-box"><div class="stat-box-n">${semana}</div><div class="stat-box-l">Últimos 7 dias</div></div>
+    <div class="stat-box"><div class="stat-box-n" style="font-size:18px;margin-top:2px;">${topEmp?topEmp[0]:'—'}</div><div class="stat-box-l">Empresa mais frequente${topEmp?' ('+topEmp[1]+'x)':''}</div></div>
+  `;
+
+  const recentes=db.sort((a,b)=>b.num-a.num).slice(0,8);
+  if(!recentes.length){ document.getElementById('statsRecent').innerHTML=`<div class="hist-empty"><span>📭</span>Nenhum voucher ainda</div>`; return; }
+
+  let h=`<div class="table-wrap"><table><thead><tr><th class="tc">Nº</th><th>Funcionário</th><th>Motorista</th><th>Empresa</th><th>Valor</th><th>Data</th><th class="tc"></th></tr></thead><tbody>`;
+  recentes.forEach(v=>{
+    h+=`<tr>
+      <td class="tc"><span class="row-num">${String(v.num).padStart(3,'0')}</span></td>
+      <td>${v.func}</td><td>${v.motor}</td><td>${v.emp}</td>
+      <td><span class="hist-tag">${v.val}</span></td>
+      <td><span class="hist-date">${fmtDate(v.createdAt)}</span></td>
+      <td class="tc"><button class="btn-via btn-via-dl" onclick="download2via(${v.num})">⬇</button></td>
+    </tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  document.getElementById('statsRecent').innerHTML=h;
+}
+
+// ════════════════════════════════════════════════
+//  PDF
+// ════════════════════════════════════════════════
+function makePDF(num,func,motor,emp,val){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({format:'a5',unit:'mm'});
+  const W=148,H=210;
+
+  doc.setFillColor(7,7,13); doc.rect(0,0,W,H,'F');
+  doc.setFillColor(212,172,58); doc.rect(0,0,W,16,'F');
+  doc.setTextColor(7,7,13); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text('TAXI MAZEPA',W/2,11,{align:'center'});
+  doc.setFillColor(20,20,42); doc.rect(0,16,W,7,'F');
+  doc.setTextColor(180,150,60); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+  doc.text('AUTORIZA\u00C7\u00C3O DE SERVI\u00C7O',W/2,21,{align:'center'});
+  doc.setFillColor(212,172,58); doc.roundedRect(W/2-22,27,44,11,2,2,'F');
+  doc.setTextColor(7,7,13); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('VOUCHER N\u00BA '+String(num).padStart(3,'0'),W/2,34.5,{align:'center'});
+  doc.setDrawColor(40,40,70); doc.setLineWidth(.3); doc.line(12,43,W-12,43);
+
+  const box=(y,h2)=>{ doc.setFillColor(14,14,28); doc.roundedRect(12,y,W-24,h2,2,2,'F'); doc.setDrawColor(40,40,68); doc.setLineWidth(.25); doc.roundedRect(12,y,W-24,h2,2,2,'S'); };
+  const lbl=(t,x,y)=>{ doc.setTextColor(130,130,160); doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.text(t,x,y); };
+  const val2=(t,x,y,sz)=>{ doc.setTextColor(240,240,255); doc.setFont('helvetica','bold'); doc.setFontSize(sz||12); doc.text(t.length>28?t.slice(0,25)+'...':t,x,y); };
+
+  box(46,19); lbl('NOME DO FUNCION\u00C1RIO',16,52); val2(func,16,60);
+  box(69,19); lbl('NOME DO MOTORISTA',16,75); val2(motor,16,83);
+
+  const hw=(W-28)/2;
+  doc.setFillColor(14,14,28); doc.roundedRect(12,92,hw,19,2,2,'F'); doc.setDrawColor(40,40,68); doc.setLineWidth(.25); doc.roundedRect(12,92,hw,19,2,2,'S');
+  doc.setFillColor(14,14,28); doc.roundedRect(16+hw,92,hw,19,2,2,'F'); doc.setDrawColor(40,40,68); doc.setLineWidth(.25); doc.roundedRect(16+hw,92,hw,19,2,2,'S');
+  lbl('EMPRESA',16,98); val2(emp.length>18?emp.slice(0,15)+'...':emp,16,106,10);
+  lbl('VALOR',20+hw,98);
+  doc.setTextColor(212,172,58); doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.text(val,20+hw,106);
+
+  doc.setDrawColor(50,50,80); doc.setLineWidth(.3); doc.setLineDashPattern([2,3],0); doc.line(12,117,W-12,117); doc.setLineDashPattern([],0);
+  doc.setTextColor(60,60,90); doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.text('recorte aqui',W/2,122,{align:'center'});
+  doc.setTextColor(100,100,130); doc.setFontSize(7);
+  doc.text('Este voucher \u00e9 pessoal e intransfer\u00edvel.',W/2,130,{align:'center'});
+  doc.text('Apresente-o no ato do servi\u00e7o para valida\u00e7\u00e3o.',W/2,136,{align:'center'});
+
+  const sw=54;
+  [[14,'Assinatura Funcion\u00e1rio'],[W-14-sw,'Assinatura Motorista']].forEach(([sx,lb])=>{
+    doc.setDrawColor(40,40,70); doc.setLineWidth(.25); doc.line(sx,160,sx+sw,160);
+    doc.setTextColor(80,80,110); doc.setFontSize(6.5); doc.text(lb,sx+sw/2,165,{align:'center'});
+  });
+
+  doc.setFillColor(212,172,58); doc.rect(0,H-7,W,7,'F');
+  doc.setTextColor(7,7,13); doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+  doc.text('TAXI MAZEPA  \u2022  VOUCHER N\u00BA '+String(num).padStart(3,'0'),W/2,H-2.5,{align:'center'});
+
+  return doc.output('arraybuffer');
+}
+
+// ════════════════════════════════════════════════
+//  CSV SAMPLE
+// ════════════════════════════════════════════════
+function downloadSample(){
+  const csv='nome_funcionario,nome_motorista,empresa,valor\nJoao Silva,Carlos Souza,Transportes ABC,R$ 50,00\nMaria Lima,Pedro Costa,Logistica XYZ,R$ 80,00\nAna Pereira,Lucas Mendes,Fretes Rapidos,R$ 35,00';
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='exemplo_vouchers.csv'; a.click();
+  URL.revokeObjectURL(url); showToast('CSV de exemplo baixado!');
+}
+
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+setNext(getNext());
+updateNavBadges();
+addRow();
+addRow();
+addRow();
+</script>
+</body>
+</html>
